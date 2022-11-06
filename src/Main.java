@@ -1,6 +1,5 @@
 import java.util.Random;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
@@ -14,9 +13,10 @@ public class Main {
     public static void main(String[] args) {
 
         int length = 100_000;    // length of the String
-        int quantity = 10_000;  // quantity of the generated strings
+        int quantity = 10_000;   // quantity of the generated strings
 
-        new Thread(() -> {
+        ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        service.submit(() -> {
             String[] texts = new String[quantity];
             for (int i = 0; i < texts.length; i++) {
                 texts[i] = generateText("abc", length);
@@ -28,9 +28,9 @@ public class Main {
                     throw new RuntimeException(e);
                 }
             }
-        }).start();
+        });
 
-        new Thread(() -> {
+        service.submit(() -> {
             for (int i = 0; i < quantity; i++) {
                 try {
                     countSymbol(list1.take(), "a");
@@ -38,9 +38,9 @@ public class Main {
                     throw new RuntimeException(e);
                 }
             }
-        }).start();
+        });
 
-        new Thread(() -> {
+        service.submit(() -> {
             String temp;
             for (int i = 0; i < quantity; i++) {
                 try {
@@ -50,9 +50,9 @@ public class Main {
                     throw new RuntimeException(e);
                 }
             }
-        }).start();
+        });
 
-        new Thread(() -> {
+        service.submit(() -> {
             for (int i = 0; i < quantity; i++) {
                 try {
                     countSymbol(list3.take(), "c");
@@ -60,7 +60,14 @@ public class Main {
                     throw new RuntimeException(e);
                 }
             }
-        }).start();
+        });
+
+        service.shutdown();
+        try {
+            service.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         System.out.println(counterA + " символов а \n" +
                 counterB + " символов b \n" +
