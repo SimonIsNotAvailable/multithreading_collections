@@ -63,15 +63,15 @@ public class Main {
         });
 
         service.shutdown();
+
         try {
-            service.awaitTermination(5, TimeUnit.SECONDS);
+            service.awaitTermination(20, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         System.out.println(counterA + " символов а \n" +
-                counterB + " символов b \n" +
-                counterC + " символов а \n");
+                    counterB + " символов b \n" +
+                    counterC + " символов а \n");
     }
 
     private static void countSymbol(String text, String symbol) {
